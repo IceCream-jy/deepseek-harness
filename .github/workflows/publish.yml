@@ -7,7 +7,7 @@ on:
         description: Image release tag
         type: string
         required: true
-        default: 0.2.2-rc.1-r1
+        default: 0.2.2-rc.1-r2
 
 permissions:
   contents: read

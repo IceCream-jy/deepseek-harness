@@ -2,7 +2,19 @@ services:
   harness:
     image: ${IMAGE:?Set IMAGE in .env}
     restart: unless-stopped
-    network_mode: host
+    entrypoint: ["/usr/bin/tini", "--", "node", "/opt/harness/container-web.mjs"]
+    command: []
+    user: "1000:1000"
+    read_only: true
+    ports:
+      - "127.0.0.1:3080:3080"
+    networks:
+      - harness
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=256m,mode=1777
+    cpus: "2.0"
+    mem_limit: 2g
+    memswap_limit: 2g
     environment:
       HTTP_PROXY: ${HTTP_PROXY:-}
       HTTPS_PROXY: ${HTTPS_PROXY:-}
@@ -14,7 +26,16 @@ services:
       - ALL
     security_opt:
       - no-new-privileges:true
-    pids_limit: 512
+    pids_limit: 256
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  harness:
+    driver: bridge
 
 volumes:
   harness-home:

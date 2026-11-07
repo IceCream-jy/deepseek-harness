@@ -4,7 +4,8 @@ Unofficial container packaging built from the official Node.js image and the off
 
 - Harness `0.2.2-rc.1`, Node.js `24-trixie`.
 - Web UI and agent runtime; no browser desktop included.
-- Non-root runtime with persistent settings, sessions and workspace files.
+- Non-root runtime, read-only root filesystem, dedicated bridge network and resource limits.
+- Persistent settings, sessions and workspace files. Hardened Compose requires image release `0.2.2-rc.1-r2` or newer.
 - Published platform: `linux/amd64`. Requires Linux Docker, including Docker-based TrueNAS SCALE installations.
 
 ## Quick start
@@ -43,7 +44,9 @@ Open the complete localhost URL containing `?token=…` from the logs. Configure
 
 Runtime proxy variables do not configure Docker image pulls. Use host names or domains in `NO_PROXY`, not CIDR ranges.
 
-Host networking allows the loopback Web listener to be accessed through SSH and shares the host's network namespace. Do not expose the service publicly or mount the host root or Docker socket.
+The supplied Compose configuration uses a dedicated bridge network and publishes the Web port on host loopback only. It limits CPU, memory, process count and logs. Do not expose the service publicly or mount the host root or Docker socket.
+
+Containers share the host kernel. Outbound network destinations and data volume capacity are not restricted by these settings. See [Container isolation](docs/hardening.md) for the enforced controls and remaining boundaries.
 
 ## Update and build
 
@@ -56,11 +59,11 @@ docker run --rm deepseek-harness-local:0.2.2-rc.1 --version
 
 To use the local build, set `IMAGE` accordingly and run `docker compose up -d` without pulling.
 
-[Publishing](docs/publishing.md) · [Contributing](CONTRIBUTING.md)
+[Publishing](docs/publishing.md) · [Container isolation](docs/hardening.md) · [Contributing](CONTRIBUTING.md)
 
 ## Validation
 
-Build, Web authentication, volume persistence across restart and native proxy connectivity were checked on Debian x86_64. Real model calls, agent command execution and TrueNAS deployment have not been verified. The base image tag and transitive dependencies are not fully locked; rebuilds are not byte-for-byte reproducible.
+Build, effective container isolation/resource settings, Web authentication, volume persistence across restart and native proxy connectivity were checked on Debian x86_64. Real model calls, agent command execution and TrueNAS deployment have not been verified. The base image tag and transitive dependencies are not fully locked; rebuilds are not byte-for-byte reproducible.
 
 ## License
 

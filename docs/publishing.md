@@ -4,7 +4,7 @@
 
 1. Create a GitHub repository and commit all project files to its default branch, including `.github/workflows/publish.yml`.
 2. Open **Actions → Publish image to GHCR → Run workflow**.
-3. Use `0.2.2-rc.1-r1` for the first release. The workflow builds the image, checks the CLI version and publishes to `ghcr.io/<lowercase-owner>/<lowercase-repository>:<tag>`.
+3. Use `0.2.2-rc.1-r2` for the first release. The workflow builds the image, checks the CLI version and publishes to `ghcr.io/<lowercase-owner>/<lowercase-repository>:<tag>`.
 4. Find the full image reference in the run's Summary.
 5. For anonymous pulls, open **Your profile → Packages → Image → Package settings** and change visibility to **Public**.
 
@@ -12,7 +12,7 @@ The workflow uses the automatic `GITHUB_TOKEN` with `contents: read` and `packag
 
 ## Versioning
 
-- Use `<Harness-version>-r<N>`, for example `0.2.2-rc.1-r1`.
+- Use `<Harness-version>-r<N>`, for example `0.2.2-rc.1-r2`.
 - Increment `r<N>` for packaging changes. When upgrading Harness, update the version prefix and start at `r1`.
 - Use a new tag for each release instead of overwriting existing versions. The workflow also publishes `sha-<full-commit-SHA>`.
 - Publishing is manually triggered. Committing code does not publish images or update running instances.

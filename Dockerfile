@@ -21,6 +21,8 @@ ENV DSH_HOME=/home/node/.dsh \
 RUN mkdir -p /home/node/.dsh /workspace \
     && chown node:node /home/node/.dsh /workspace
 
+COPY container-web.mjs /opt/harness/container-web.mjs
+
 USER node
 WORKDIR /workspace
 ENTRYPOINT ["/usr/bin/tini", "--", "node", "--expose-internals", "/usr/local/lib/node_modules/@deepseek-ai/dsh/lib/bin.js"]
