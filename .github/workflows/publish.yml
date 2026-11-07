@@ -1,0 +1,64 @@
+name: Publish image to GHCR
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: Image release tag
+        type: string
+        required: true
+        default: 0.2.2-rc.1-r1
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: ghcr-${{ github.repository }}-${{ inputs.image_tag }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      IMAGE_TAG: ${{ inputs.image_tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set image name and validate tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$IMAGE_TAG" =~ ^[a-zA-Z0-9_][a-zA-Z0-9_.-]{0,127}$ ]]
+          echo "IMAGE=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+
+      - name: Build and check CLI version
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker build --pull --platform linux/amd64 \
+            --label "org.opencontainers.image.source=https://github.com/$GITHUB_REPOSITORY" \
+            --label "org.opencontainers.image.revision=$GITHUB_SHA" \
+            --label "org.opencontainers.image.version=$IMAGE_TAG" \
+            -t "$IMAGE:$IMAGE_TAG" -t "$IMAGE:sha-$GITHUB_SHA" .
+          docker run --rm "$IMAGE:$IMAGE_TAG" --version
+
+      - name: Login and publish
+        shell: bash
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          docker push "$IMAGE:$IMAGE_TAG"
+          docker push "$IMAGE:sha-$GITHUB_SHA"
+          {
+            echo '### Published image (linux/amd64)'
+            echo "\`$IMAGE:$IMAGE_TAG\`"
+            echo "\`$IMAGE:sha-$GITHUB_SHA\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Logout
+        if: always()
+        run: docker logout ghcr.io
